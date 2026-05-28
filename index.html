@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Creative Suite — Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #050408;
+    --white: #f0ecff;
+    --purple: #7c3aed;
+    --purple-soft: #a78bfa;
+    --purple-dim: rgba(124,58,237,0.15);
+    --text-muted: rgba(240,236,255,0.38);
+    --text-mid: rgba(240,236,255,0.65);
+    --border: rgba(255,255,255,0.07);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;
+    mix-blend-mode: difference;
+  }
+  .cursor-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--white);
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease;
+  }
+  .cursor-ring {
+    position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998;
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid rgba(167,139,250,0.6);
+    transform: translate(-50%, -50%);
+    transition: transform 0.12s ease, width 0.2s ease, height 0.2s ease, border-color 0.2s ease;
+  }
+  body.hovering .cursor-ring {
+    width: 56px; height: 56px;
+    border-color: rgba(167,139,250,0.9);
+  }
+
+  /* NOISE */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.032;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 220px 220px;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 56px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(5,4,8,0.8);
+    backdrop-filter: blur(20px);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 3px;
+    color: var(--white);
+  }
+  .nav-links { display: flex; gap: 40px; }
+  .nav-links a {
+    font-size: 12px; font-weight: 400; color: var(--text-muted);
+    text-decoration: none; letter-spacing: 2px; text-transform: uppercase;
+    transition: color 0.25s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    font-size: 12px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--black); background: var(--white);
+    padding: 10px 24px; border-radius: 2px;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nav-cta:hover { background: var(--purple-soft); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 120px 40px 80px;
+    position: relative; overflow: hidden;
+  }
+
+  .hero-bg-orb {
+    position: absolute; border-radius: 50%; pointer-events: none;
+  }
+  .orb-1 {
+    width: 800px; height: 800px;
+    background: radial-gradient(circle, rgba(124,58,237,0.22) 0%, transparent 65%);
+    top: -200px; left: -200px;
+    animation: float1 8s ease-in-out infinite;
+  }
+  .orb-2 {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(167,139,250,0.12) 0%, transparent 65%);
+    bottom: -100px; right: -100px;
+    animation: float2 10s ease-in-out infinite;
+  }
+  .orb-3 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 65%);
+    top: 40%; left: 60%;
+    animation: float1 12s ease-in-out infinite reverse;
+  }
+
+  @keyframes float1 {
+    0%, 100% { transform: translate(0,0); }
+    50% { transform: translate(40px, 30px); }
+  }
+  @keyframes float2 {
+    0%, 100% { transform: translate(0,0); }
+    50% { transform: translate(-30px, 20px); }
+  }
+
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 500; letter-spacing: 6px;
+    text-transform: uppercase; color: var(--purple-soft);
+    margin-bottom: 24px;
+    opacity: 0; animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 12vw, 180px);
+    letter-spacing: -2px; line-height: 0.9;
+    background: linear-gradient(160deg, #fff 0%, rgba(200,170,255,0.9) 40%, rgba(124,58,237,0.8) 80%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0; animation: fadeUp 0.8s ease 0.35s forwards;
+  }
+
+  .hero-sub {
+    margin-top: 32px; max-width: 560px;
+    font-size: 18px; font-weight: 300; color: var(--text-mid); line-height: 1.7;
+    opacity: 0; animation: fadeUp 0.8s ease 0.5s forwards;
+  }
+
+  .hero-stats {
+    margin-top: 60px; display: flex; gap: 64px; align-items: center;
+    opacity: 0; animation: fadeUp 0.8s ease 0.65s forwards;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 800;
+    color: var(--white); line-height: 1;
+  }
+  .stat-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
+  .stat-div { width: 1px; height: 50px; background: var(--border); }
+
+  .hero-scroll {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; animation: fadeUp 0.8s ease 1s forwards;
+  }
+  .scroll-line {
+    width: 1px; height: 48px;
+    background: linear-gradient(to bottom, rgba(167,139,250,0.6), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  .scroll-text { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.5; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.2); transform-origin: top; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-size: 10px; letter-spacing: 6px; text-transform: uppercase;
+    color: var(--purple-soft); margin-bottom: 16px;
+  }
+
+  /* SERVICES SECTION */
+  .services {
+    padding: 140px 56px;
+    position: relative;
+  }
+
+  .services-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 80px;
+  }
+  .services-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 7vw, 96px); letter-spacing: -1px; line-height: 0.92;
+    color: var(--white);
+  }
+  .services-desc {
+    max-width: 320px; font-size: 14px; font-weight: 300;
+    color: var(--text-muted); line-height: 1.8; text-align: right;
+  }
+
+  /* BIG SERVICE CARDS */
+  .service-cards { display: flex; flex-direction: column; gap: 2px; }
+
+  .service-card {
+    border: 1px solid var(--border);
+    border-radius: 0;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.3s;
+    cursor: none;
+  }
+  .service-card:first-child { border-radius: 16px 16px 0 0; }
+  .service-card:last-child { border-radius: 0 0 16px 16px; }
+
+  .service-card:hover { border-color: rgba(124,58,237,0.4); }
+
+  .service-inner {
+    display: grid; grid-template-columns: 1fr 1fr; min-height: 460px;
+    transition: background 0.4s;
+  }
+  .service-card:hover .service-inner { background: rgba(124,58,237,0.04); }
+
+  .service-card:nth-child(even) .service-inner { direction: rtl; }
+  .service-card:nth-child(even) .service-info { direction: ltr; }
+  .service-card:nth-child(even) .service-visual { direction: ltr; }
+
+  .service-info {
+    padding: 60px 64px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    border-right: 1px solid var(--border);
+  }
+  .service-card:nth-child(even) .service-info { border-right: none; border-left: 1px solid var(--border); }
+
+  .service-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px; letter-spacing: 4px; color: var(--text-muted);
+  }
+
+  .service-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 5vw, 72px); letter-spacing: -1px; line-height: 0.9;
+    color: var(--white); margin: 24px 0 16px;
+  }
+
+  .service-tagline {
+    font-size: 14px; font-weight: 400; color: var(--purple-soft);
+    letter-spacing: 0.5px; margin-bottom: 20px;
+  }
+
+  .service-body {
+    font-size: 14px; font-weight: 300; color: var(--text-muted);
+    line-height: 1.85; max-width: 400px;
+  }
+
+  .service-meta {
+    display: flex; gap: 24px; margin-top: 36px; flex-wrap: wrap;
+  }
+  .meta-item {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .meta-key { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
+  .meta-val { font-size: 14px; font-weight: 500; color: var(--white); }
+
+
+
+  /* VISUAL PANEL */
+  .service-visual {
+    position: relative; overflow: hidden;
+    background: #0c0910;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* VIDEO PLAYERS */
+  /* 16:9 — occupa tutto il pannello */
+  .service-visual--169 {
+    padding: 0;
+  }
+  .video-player-wrap {
+    width: 100%; height: 100%;
+    position: relative;
+  }
+  .video-player-wrap iframe {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    border: none; display: none;
+  }
+  .video-placeholder {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden;
+  }
+  .placeholder-play {
+    position: relative; z-index: 3;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .placeholder-btn {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .placeholder-btn::after {
+    content: ''; width: 0; height: 0;
+    border-top: 12px solid transparent; border-bottom: 12px solid transparent;
+    border-left: 18px solid rgba(255,255,255,0.85);
+    margin-left: 5px;
+  }
+  .video-placeholder:hover .placeholder-btn {
+    background: rgba(124,58,237,0.4); transform: scale(1.08);
+  }
+  .placeholder-label {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    color: rgba(255,255,255,0.7); letter-spacing: 1px;
+  }
+  .placeholder-sub {
+    font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 2px; text-transform: uppercase;
+  }
+
+  /* 9:16 — phone frame grande */
+  .service-visual--916 {
+    padding: 40px 0;
+  }
+  .phone-big {
+    width: 220px; height: 390px;
+    background: #080610;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 36px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.1);
+    flex-shrink: 0;
+  }
+  .phone-big-notch {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 48px; height: 6px; border-radius: 3px;
+    background: rgba(255,255,255,0.15); z-index: 10;
+  }
+  .phone-big-screen {
+    position: absolute; inset: 0; border-radius: 34px; overflow: hidden;
+  }
+  .phone-big-screen iframe {
+    width: 100%; height: 100%; border: none; display: none;
+    border-radius: 34px;
+  }
+  .phone-big-placeholder {
+    position: absolute; inset: 0; border-radius: 34px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .phone-big-placeholder-bg {
+    position: absolute; inset: 0;
+  }
+  .phone-big-placeholder-scan {
+    position: absolute; inset: 0; opacity: 0.1;
+    background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%);
+    background-size: 100% 35%;
+    animation: phoneScan916 2.5s linear infinite;
+  }
+  @keyframes phoneScan916 { 0%{background-position:0 -100%;} 100%{background-position:0 200%;} }
+  .phone-big-play {
+    position: relative; z-index: 4;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .phone-big-play-btn {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+    animation: pulsePop 2s ease-in-out infinite;
+  }
+  .phone-big-play-btn::after {
+    content:''; width:0; height:0;
+    border-top:10px solid transparent; border-bottom:10px solid transparent;
+    border-left:15px solid rgba(255,255,255,0.85); margin-left:4px;
+  }
+  .phone-big-placeholder:hover .phone-big-play-btn {
+    background: rgba(124,58,237,0.4); transform: scale(1.1); animation: none;
+  }
+  .phone-big-label {
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+    color: rgba(255,255,255,0.6); letter-spacing: 1px;
+  }
+  .phone-big-sub { font-size: 9px; color: rgba(255,255,255,0.25); letter-spacing: 2px; text-transform: uppercase; }
+  /* side icons per phone 9:16 */
+  .phone-big-side {
+    position: absolute; right: -44px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .phone-big-icon {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .phone-big-icon svg { width: 15px; height: 15px; fill: none; stroke: rgba(255,255,255,0.45); stroke-width: 1.5; }
+
+  .vis-bg {
+    position: absolute; inset: 0;
+    transition: opacity 0.4s;
+  }
+  .service-card:hover .vis-bg { opacity: 0.8; }
+
+  .vis-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(5,4,8,0.5) 0%, transparent 60%);
+  }
+
+  /* Animated visual elements per tipo */
+  .vis-content { position: relative; z-index: 2; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+
+  /* Product Demo visual */
+  .vis-product {
+    width: 240px; height: 160px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vis-product::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(124,58,237,0.3) 0%, transparent 60%);
+  }
+  .vis-play-btn {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center; z-index: 2;
+    animation: pulsePop 2.5s ease-in-out infinite;
+  }
+  .vis-play-btn::after {
+    content: ''; width: 0; height: 0;
+    border-top: 10px solid transparent; border-bottom: 10px solid transparent;
+    border-left: 16px solid rgba(255,255,255,0.85);
+    margin-left: 4px;
+  }
+  .vis-scan-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(124,58,237,0.8), transparent);
+    animation: scanLine 3s linear infinite;
+  }
+  .vis-timecode {
+    position: absolute; bottom: 12px; right: 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 500;
+    color: rgba(255,255,255,0.5); letter-spacing: 2px;
+  }
+  .vis-aspect {
+    position: absolute; top: 12px; left: 14px;
+    font-size: 9px; letter-spacing: 2px; font-weight: 500;
+    color: rgba(167,139,250,0.7); text-transform: uppercase;
+  }
+  @keyframes pulsePop { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);} }
+  @keyframes scanLine { 0%{top:-2px;} 100%{top:100%;} }
+
+  /* Social Ads — phone mockup */
+  .vis-phone {
+    width: 120px; height: 210px;
+    background: #0a0810;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 22px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.2);
+  }
+  .phone-notch {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 40px; height: 5px; border-radius: 3px;
+    background: rgba(255,255,255,0.12); z-index: 5;
+  }
+  .phone-screen-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, #1a0a3e 0%, #3b1278 50%, #6d28d9 100%);
+  }
+  .phone-scan {
+    position: absolute; inset: 0; opacity: 0.12;
+    background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
+    background-size: 100% 35%;
+    animation: phoneScan 2.5s linear infinite;
+  }
+  .phone-ui {
+    position: absolute; bottom: 16px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 5px;
+  }
+  .phone-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.25); }
+  .phone-dot.on { background: rgba(255,255,255,0.75); width: 14px; border-radius: 2.5px; }
+  .phone-play-sm {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    z-index: 4;
+    animation: pulsePop 2s ease-in-out infinite;
+  }
+  .phone-play-sm::after {
+    content:''; position:absolute; top:50%; left:53%; transform:translate(-50%,-50%);
+    width:0; height:0;
+    border-top:7px solid transparent; border-bottom:7px solid transparent;
+    border-left:11px solid rgba(255,255,255,0.75);
+  }
+  .phone-tiktok {
+    position: absolute; right: -24px; top: 40px;
+    display: flex; flex-direction: column; gap: 12px; z-index: 5;
+  }
+  .tiktok-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tiktok-icon svg { width: 12px; height: 12px; fill: rgba(255,255,255,0.5); }
+  @keyframes phoneScan { 0%{background-position:0 -100%;} 100%{background-position:0 200%;} }
+
+  /* Cinematic Brand — film strip */
+  .vis-film {
+    position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; gap: 3px;
+    padding: 0 30px;
+  }
+  .film-strip {
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .film-frame {
+    width: 56px; height: 40px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 2px; position: relative; overflow: hidden;
+  }
+  .film-frame::before, .film-frame::after {
+    content: '';
+    position: absolute; top: 0; bottom: 0;
+    width: 7px; background: rgba(0,0,0,0.5);
+  }
+  .film-frame::before { left: 0; }
+  .film-frame::after { right: 0; }
+  .film-frame.lit {
+    background: rgba(124,58,237,0.25);
+    border-color: rgba(124,58,237,0.4);
+    animation: filmLit 4s ease-in-out infinite;
+  }
+  .film-frame.lit2 {
+    background: rgba(99,102,241,0.2);
+    border-color: rgba(99,102,241,0.35);
+    animation: filmLit 4s ease-in-out 1s infinite;
+  }
+  .film-center {
+    width: 120px; height: 80px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px; position: relative; overflow: hidden;
+    flex-shrink: 0;
+  }
+  .film-center-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #1a0a3e, #4c1d95, #7c3aed);
+    opacity: 0.7;
+  }
+  .film-center::before, .film-center::after {
+    content: '';
+    position: absolute; top: 0; bottom: 0;
+    width: 10px; background: rgba(0,0,0,0.6);
+    z-index: 2;
+  }
+  .film-center::before { left: 0; }
+  .film-center::after { right: 0; }
+  .film-center-play {
+    position: absolute; z-index: 3; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .film-center-play::after {
+    content:''; width:0; height:0;
+    border-top:6px solid transparent; border-bottom:6px solid transparent;
+    border-left:9px solid rgba(255,255,255,0.8); margin-left:2px;
+  }
+  @keyframes filmLit { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+
+  /* UGC — phone with social chrome */
+  .vis-ugc-wrap {
+    position: relative; display: flex; align-items: center; justify-content: center;
+  }
+  .vis-ugc-phone {
+    width: 130px; height: 230px;
+    background: #0a0810;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 24px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .ugc-screen { position: absolute; inset: 0; background: linear-gradient(160deg, #0c0520 0%, #2d0a5e 45%, #5b21b6 80%); }
+  .ugc-notch { position:absolute; top:10px; left:50%; transform:translateX(-50%); width:38px; height:5px; border-radius:3px; background:rgba(255,255,255,0.12); z-index:5; }
+  .ugc-overlay-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 60px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
+    z-index: 3; display: flex; align-items: flex-start; padding: 20px 10px 0;
+  }
+  .ugc-live-badge {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(220,38,38,0.85); border-radius: 4px;
+    padding: 2px 7px;
+  }
+  .ugc-live-dot { width: 5px; height: 5px; border-radius: 50%; background: #fff; animation: blink 1s infinite; }
+  .ugc-live-text { font-size: 8px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; }
+  .ugc-overlay-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    z-index: 3; display: flex; align-items: flex-end; padding: 0 10px 16px;
+    flex-direction: column; justify-content: flex-end;
+  }
+  .ugc-username { font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.7); }
+  .ugc-caption { font-size: 8px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  .ugc-side-icons {
+    position: absolute; right: -36px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 14px; z-index: 5;
+  }
+  .ugc-icon {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ugc-icon svg { width: 14px; height: 14px; fill: none; stroke: rgba(255,255,255,0.5); stroke-width: 1.5; }
+  .ugc-scan { position:absolute; inset:0; opacity:0.08; background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,0.5) 50%,transparent 100%); background-size:100% 35%; animation:phoneScan 2.5s linear infinite; z-index:2; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  @keyframes phoneScan { 0%{background-position:0 -100%;} 100%{background-position:0 200%;} }
+
+  /* HOW IT WORKS */
+  .process {
+    padding: 140px 56px;
+    border-top: 1px solid var(--border);
+    background: rgba(255,255,255,0.01);
+  }
+  .process-header { margin-bottom: 80px; }
+  .process-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 6vw, 88px); letter-spacing: -1px; line-height: 0.9;
+  }
+  .process-steps {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;
+  }
+  .process-step {
+    padding: 40px 36px;
+    border: 1px solid var(--border); position: relative;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .process-step:hover { border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.03); }
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 72px;
+    color: rgba(124,58,237,0.15); line-height: 1; margin-bottom: 20px;
+    transition: color 0.3s;
+  }
+  .process-step:hover .step-num { color: rgba(124,58,237,0.35); }
+  .step-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 12px; }
+  .step-body { font-size: 13px; font-weight: 300; color: var(--text-muted); line-height: 1.8; }
+
+  /* WHY AI */
+  .why {
+    padding: 140px 56px;
+    border-top: 1px solid var(--border);
+  }
+  .why-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+    margin-top: 80px;
+  }
+  .why-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 6vw, 88px); letter-spacing: -1px; line-height: 0.9;
+  }
+  .why-title span { color: var(--purple-soft); }
+  .why-body { font-size: 15px; font-weight: 300; color: var(--text-mid); line-height: 1.9; margin-top: 24px; }
+  .why-numbers { display: flex; flex-direction: column; gap: 2px; }
+  .why-num-card {
+    padding: 28px 36px; border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 32px;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .why-num-card:first-child { border-radius: 14px 14px 0 0; }
+  .why-num-card:last-child { border-radius: 0 0 14px 14px; }
+  .why-num-card:hover { border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.04); }
+  .why-big-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 56px; letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 30%, var(--purple-soft));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    min-width: 130px;
+  }
+  .why-num-label { font-size: 13px; font-weight: 300; color: var(--text-muted); line-height: 1.7; }
+  .why-num-label strong { display: block; font-size: 15px; font-weight: 500; color: var(--white); margin-bottom: 4px; }
+
+  /* TOOLS */
+  .tools {
+    padding: 100px 56px;
+    border-top: 1px solid var(--border);
+    background: rgba(255,255,255,0.01);
+  }
+  .tools-label { text-align: center; margin-bottom: 48px; }
+  .tools-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 40px; flex-wrap: wrap;
+  }
+  .tool-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 24px; border: 1px solid var(--border); border-radius: 40px;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .tool-item:hover { border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.06); }
+  a.tool-link { text-decoration: none; cursor: none; position: relative; }
+  a.tool-link::after { content: '↗'; font-size: 9px; color: rgba(255,255,255,0.25); margin-left: 6px; transition: color 0.2s; }
+  a.tool-link:hover::after { color: rgba(255,255,255,0.6); }
+  .tool-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .tool-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+
+  /* CTA */
+  .cta-section {
+    padding: 160px 56px;
+    border-top: 1px solid var(--border);
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .cta-orb {
+    position: absolute; width: 700px; height: 700px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 65%);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .cta-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(60px, 9vw, 130px); letter-spacing: -2px; line-height: 0.9;
+    background: linear-gradient(160deg, #fff 0%, rgba(200,170,255,0.9) 50%, rgba(124,58,237,0.8) 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    position: relative; z-index: 1;
+  }
+  .cta-sub {
+    margin-top: 24px; font-size: 16px; font-weight: 300; color: var(--text-muted);
+    position: relative; z-index: 1;
+  }
+  .cta-btns {
+    margin-top: 48px; display: flex; gap: 16px; justify-content: center;
+    position: relative; z-index: 1;
+  }
+  .btn-primary {
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    letter-spacing: 2px; text-transform: uppercase;
+    background: var(--white); color: var(--black);
+    padding: 16px 40px; border-radius: 2px; border: none;
+    text-decoration: none; transition: background 0.2s;
+    cursor: none;
+  }
+  .btn-primary:hover { background: var(--purple-soft); }
+  .btn-secondary {
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    letter-spacing: 2px; text-transform: uppercase;
+    background: transparent; color: var(--white);
+    padding: 16px 40px; border-radius: 2px;
+    border: 1px solid var(--border); text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: none;
+  }
+  .btn-secondary:hover { border-color: rgba(124,58,237,0.5); background: rgba(124,58,237,0.08); }
+
+  /* FOOTER */
+  footer {
+    padding: 40px 56px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; color: var(--text-muted);
+  }
+  .footer-copy { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+
+  /* VIS BG colors */
+  .vis-bg-product { background: radial-gradient(ellipse at 30% 60%, rgba(124,58,237,0.35) 0%, rgba(5,4,8,1) 65%); }
+  .vis-bg-social { background: radial-gradient(ellipse at 70% 40%, rgba(99,102,241,0.3) 0%, rgba(5,4,8,1) 65%); }
+  .vis-bg-cinematic { background: radial-gradient(ellipse at 50% 50%, rgba(76,29,149,0.4) 0%, rgba(5,4,8,1) 60%); }
+  .vis-bg-ugc { background: radial-gradient(ellipse at 60% 40%, rgba(91,33,182,0.3) 0%, rgba(5,4,8,1) 65%); }
+
+  /* Scroll reveal */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 900px) {
+    nav { padding: 20px 24px; }
+    .nav-links { display: none; }
+    .services, .process, .why, .tools, .cta-section { padding: 80px 24px; }
+    .services-header { flex-direction: column; gap: 24px; }
+    .services-desc { text-align: left; max-width: 100%; }
+    .service-inner { grid-template-columns: 1fr; }
+    .service-info { border-right: none !important; border-left: none !important; border-bottom: 1px solid var(--border); }
+    .service-visual { min-height: 260px; }
+    .process-steps { grid-template-columns: 1fr 1fr; }
+    .why-grid { grid-template-columns: 1fr; gap: 48px; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor"><div class="cursor-dot"></div></div>
+<div class="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">AI Creative Suite</div>
+  <div class="nav-links">
+    <a href="#services">Services</a>
+    <a href="#process">Process</a>
+    <a href="#why">Why AI</a>
+  </div>
+  <a href="#contact" class="nav-cta">Get Started</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-orb orb-1"></div>
+  <div class="hero-bg-orb orb-2"></div>
+  <div class="hero-bg-orb orb-3"></div>
+
+  <p class="hero-eyebrow">AI Video Production Studio</p>
+  <h1 class="hero-title">AI Creative<br>Suite</h1>
+  <p class="hero-sub">We produce cinematic-quality video ads for brands, agencies and startups — powered by AI. Faster. Cheaper. Higher impact.</p>
+
+  <div class="hero-stats">
+    <div>
+      <div class="stat-num">50%</div>
+      <div class="stat-label">Cost reduction</div>
+    </div>
+    <div class="stat-div"></div>
+    <div>
+      <div class="stat-num">3–5</div>
+      <div class="stat-label">Days delivery</div>
+    </div>
+    <div class="stat-div"></div>
+    <div>
+      <div class="stat-num">4</div>
+      <div class="stat-label">Video formats</div>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span class="scroll-text">Scroll</span>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+
+  <div class="services-header reveal">
+    <div>
+      <p class="section-label">What We Make</p>
+      <h2 class="services-title">Four Formats.<br>Infinite Impact.</h2>
+    </div>
+    <p class="services-desc">Every video format is engineered for a specific goal — from stopping the scroll to closing the sale.</p>
+  </div>
+
+  <div class="service-cards">
+
+    <!-- 01 PRODUCT DEMO -->
+    <div class="service-card reveal">
+      <div class="service-inner">
+        <div class="service-info">
+          <span class="service-num">01 / 04</span>
+          <div>
+            <h3 class="service-name">Product<br>Demo<br>Video</h3>
+            <p class="service-tagline">Show it. Sell it.</p>
+            <p class="service-body">Your product deserves to be seen in action. We create clear, visually compelling demo videos that show exactly what you do and why it matters — purpose-built to convert viewers into customers.</p>
+            <div class="service-meta">
+              <div class="meta-item">
+                <span class="meta-key">Format</span>
+                <span class="meta-val">16:9 / 1:1</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Duration</span>
+                <span class="meta-val">60–90 sec</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Delivery</span>
+                <span class="meta-val">3–4 days</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="service-visual service-visual--169">
+          <div class="video-player-wrap">
+            <iframe
+              src="https://www.youtube.com/embed/VIDEO_ID_PRODUCT?rel=0&modestbranding=1&color=white"
+              title="Product Demo Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen>
+            </iframe>
+            <div class="video-placeholder" onclick="this.style.display='none';this.previousElementSibling.style.display='block'">
+              <div class="vis-bg vis-bg-product" style="position:absolute;inset:0"></div>
+              <div class="vis-overlay" style="position:absolute;inset:0"></div>
+              <div class="placeholder-play">
+                <div class="placeholder-btn"></div>
+                <span class="placeholder-label">Product Demo</span>
+                <span class="placeholder-sub">Click to play</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 SOCIAL ADS -->
+    <div class="service-card reveal">
+      <div class="service-inner">
+        <div class="service-info">
+          <span class="service-num">02 / 04</span>
+          <div>
+            <h3 class="service-name">Social<br>Ads —<br>Reels &<br>TikTok</h3>
+            <p class="service-tagline">Stop the scroll. Start the sale.</p>
+            <p class="service-body">Vertical-first creatives engineered for Instagram Reels, TikTok and YouTube Shorts. High-energy, attention-grabbing, platform-optimised — designed to perform from the very first frame.</p>
+            <div class="service-meta">
+              <div class="meta-item">
+                <span class="meta-key">Format</span>
+                <span class="meta-val">9:16</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Duration</span>
+                <span class="meta-val">15–30 sec</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Delivery</span>
+                <span class="meta-val">2–3 days</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="service-visual service-visual--916">
+          <div style="position:relative">
+            <div class="phone-big">
+              <div class="phone-big-notch"></div>
+              <div class="phone-big-screen">
+                <iframe
+                  src="https://www.youtube.com/embed/VIDEO_ID_SOCIAL?rel=0&modestbranding=1&color=white"
+                  title="Social Ads Reels TikTok"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen>
+                </iframe>
+              </div>
+              <div class="phone-big-placeholder" onclick="this.style.display='none';this.previousElementSibling.querySelector('iframe').style.display='block'">
+                <div class="phone-big-placeholder-bg vis-bg-social" style="position:absolute;inset:0"></div>
+                <div class="phone-big-placeholder-scan"></div>
+                <div class="phone-big-play">
+                  <div class="phone-big-play-btn"></div>
+                  <span class="phone-big-label">Social Ads</span>
+                  <span class="phone-big-sub">Click to play</span>
+                </div>
+              </div>
+            </div>
+            <div class="phone-big-side">
+              <div class="phone-big-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+              <div class="phone-big-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <div class="phone-big-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 CINEMATIC BRAND -->
+    <div class="service-card reveal">
+      <div class="service-inner">
+        <div class="service-info">
+          <span class="service-num">03 / 04</span>
+          <div>
+            <h3 class="service-name">Cinematic<br>Brand<br>Spot</h3>
+            <p class="service-tagline">Film-quality. AI-speed.</p>
+            <p class="service-body">Your brand has a story. We tell it with the visual language of cinema — dramatic lighting, fluid motion, emotional narrative. The kind of content that builds brand equity and sticks in memory long after the scroll.</p>
+            <div class="service-meta">
+              <div class="meta-item">
+                <span class="meta-key">Format</span>
+                <span class="meta-val">16:9 / 9:16</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Duration</span>
+                <span class="meta-val">30–60 sec</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Delivery</span>
+                <span class="meta-val">4–5 days</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="service-visual service-visual--169">
+          <div class="video-player-wrap">
+            <iframe
+              src="https://www.youtube.com/embed/83HXj0YbfEI"
+              title="Cinematic Brand Spot"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen>
+            </iframe>
+            <div class="video-placeholder" onclick="this.style.display='none';this.previousElementSibling.style.display='block'">
+              <div class="vis-bg vis-bg-cinematic" style="position:absolute;inset:0"></div>
+              <div class="vis-overlay" style="position:absolute;inset:0"></div>
+              <div class="placeholder-play">
+                <div class="placeholder-btn"></div>
+                <span class="placeholder-label">Cinematic Brand Spot</span>
+                <span class="placeholder-sub">Click to play</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04 UGC -->
+    <div class="service-card reveal">
+      <div class="service-inner">
+        <div class="service-info">
+          <span class="service-num">04 / 04</span>
+          <div>
+            <h3 class="service-name">UGC-Style<br>Video</h3>
+            <p class="service-tagline">Authentic feel. Paid performance.</p>
+            <p class="service-body">The most trusted format on social media — raw, native, human. UGC-style videos convert like organic content while scaling like paid ads. Perfect for DTC brands, apps and startups that want to blend into the feed and still dominate it.</p>
+            <div class="service-meta">
+              <div class="meta-item">
+                <span class="meta-key">Format</span>
+                <span class="meta-val">9:16 vertical</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Duration</span>
+                <span class="meta-val">15–45 sec</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-key">Delivery</span>
+                <span class="meta-val">2–3 days</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="service-visual service-visual--916">
+          <div style="position:relative">
+            <div class="phone-big">
+              <div class="phone-big-notch"></div>
+              <div class="phone-big-screen">
+                <iframe
+                  src="https://www.youtube.com/embed/VIDEO_ID_UGC?rel=0&modestbranding=1&color=white"
+                  title="UGC Style Video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen>
+                </iframe>
+              </div>
+              <div class="phone-big-placeholder" onclick="this.style.display='none';this.previousElementSibling.querySelector('iframe').style.display='block'">
+                <div class="phone-big-placeholder-bg vis-bg-ugc" style="position:absolute;inset:0"></div>
+                <div class="phone-big-placeholder-scan"></div>
+                <div class="phone-big-play">
+                  <div class="phone-big-play-btn"></div>
+                  <span class="phone-big-label">UGC-Style Video</span>
+                  <span class="phone-big-sub">Click to play</span>
+                </div>
+              </div>
+            </div>
+            <div class="phone-big-side">
+              <div class="phone-big-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+              <div class="phone-big-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <div class="phone-big-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="process" id="process">
+  <div class="process-header reveal">
+    <p class="section-label">How It Works</p>
+    <h2 class="process-title">From Brief<br>to Delivered.</h2>
+  </div>
+  <div class="process-steps">
+    <div class="process-step reveal">
+      <div class="step-num">01</div>
+      <h3 class="step-title">Brief & Goal</h3>
+      <p class="step-body">You share your brand, product and objective. We ask the right questions. No lengthy forms — just a direct conversation about what needs to work.</p>
+    </div>
+    <div class="process-step reveal" style="transition-delay:0.1s">
+      <div class="step-num">02</div>
+      <h3 class="step-title">Concept & Script</h3>
+      <p class="step-body">We develop the creative concept, script and visual direction. You approve before a single frame is generated. Zero surprises.</p>
+    </div>
+    <div class="process-step reveal" style="transition-delay:0.2s">
+      <div class="step-num">03</div>
+      <h3 class="step-title">AI Production</h3>
+      <p class="step-body">We run the production pipeline across Higgsfield, Seedance, Kling and more — selecting the best model for each scene and style requirement.</p>
+    </div>
+    <div class="process-step reveal" style="transition-delay:0.3s">
+      <div class="step-num">04</div>
+      <h3 class="step-title">Delivery & Revisions</h3>
+      <p class="step-body">You receive the final video in 3–5 days. One round of revisions included. Ready to publish, run as ads or send directly to your clients.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WHY AI -->
+<section class="why" id="why">
+  <p class="section-label reveal">The Advantage</p>
+  <div class="why-grid">
+    <div class="reveal">
+      <h2 class="why-title">Why <span>AI</span><br>Video<br>Changes<br>Everything.</h2>
+      <p class="why-body">Traditional video production is slow, expensive and hard to iterate. AI-powered production keeps the quality, removes the friction — and gives you the ability to test more creatives, faster, at a fraction of the cost.</p>
+    </div>
+    <div class="why-numbers reveal">
+      <div class="why-num-card">
+        <div class="why-big-num">50%</div>
+        <div class="why-num-label">
+          <strong>Lower production cost</strong>
+          Compared to traditional video production with crew, equipment and post.
+        </div>
+      </div>
+      <div class="why-num-card">
+        <div class="why-big-num">3–5x</div>
+        <div class="why-num-label">
+          <strong>Faster delivery</strong>
+          What takes weeks in traditional production takes days with AI.
+        </div>
+      </div>
+      <div class="why-num-card">
+        <div class="why-big-num">∞</div>
+        <div class="why-num-label">
+          <strong>Creative iterations</strong>
+          Test different hooks, visuals and formats without blowing your budget.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="tools">
+  <div class="tools-label reveal">
+    <p class="section-label">Powered By</p>
+  </div>
+  <div class="tools-row reveal">
+    <div class="tool-item" style="cursor:default;opacity:0.5"><div class="tool-dot" style="background:#fff"></div><span class="tool-name" style="color:rgba(255,255,255,0.8)">Higgsfield</span></div>
+    <a href="https://www.youtube.com/watch?v=jvFaFq-2Gzw" target="_blank" rel="noopener" class="tool-item tool-link"><div class="tool-dot" style="background:#00e5ff"></div><span class="tool-name" style="color:#00e5ff">Seedance</span></a>
+    <a href="https://d8j0ntlcm91z4.cloudfront.net/user_2wO5tPGQcNfwTDYqfkAPclPLHSj/hf_20260520_003408_3cebc8da-60cb-4c27-ab18-338ffb9f2ff0.mp4" target="_blank" rel="noopener" class="tool-item tool-link"><div class="tool-dot" style="background:#ff9500;border-radius:2px"></div><span class="tool-name" style="color:#ff9500">Cinema Studio</span></a>
+    <a href="https://www.youtube.com/watch?v=ZqxP616nvIE" target="_blank" rel="noopener" class="tool-item tool-link"><div class="tool-dot" style="background:#7c5cfc;border-radius:2px"></div><span class="tool-name" style="color:#c4b5fd">Kling</span></a>
+    <a href="https://www.youtube.com/watch?v=ODyROOW1dCo" target="_blank" rel="noopener" class="tool-item tool-link"><div class="tool-dot" style="background:#34a853"></div><span class="tool-name" style="color:#34a853">Veo</span></a>
+    <a href="https://www.youtube.com/watch?v=BnYFwQEAJls" target="_blank" rel="noopener" class="tool-item tool-link"><div class="tool-dot" style="background:linear-gradient(135deg,#f472b6,#a78bfa)"></div><span class="tool-name" style="background:linear-gradient(135deg,#f472b6,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Soul</span></a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <div class="cta-orb"></div>
+  <h2 class="cta-title reveal">Ready to<br>Create?</h2>
+  <p class="cta-sub reveal">Send us your brief and get your first video in 3–5 days.</p>
+  <div class="cta-btns reveal">
+    <a href="https://www.fiverr.com/imnodix_/create-stunning-ai-videos-with-sora-2" target="_blank" rel="noopener" class="btn-primary">Order on Fiverr</a>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">AI Creative Suite</div>
+</footer>
+
+<script>
+  // Custom cursor
+  const dot = document.querySelector('.cursor-dot');
+  const ring = document.querySelector('.cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.left = mx + 'px';
+    dot.style.top = my + 'px';
+  });
+
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  document.querySelectorAll('a, button, .service-card, .process-step, .why-num-card, .tool-item').forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
